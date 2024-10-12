@@ -61,7 +61,7 @@ namespace EmployeeManagement.Controllers
             var existingEmployee = await _employeeService.GetEmployeeByEmailOrMobile(employee.Email);
             if (existingEmployee != null)
             {
-                return Conflict("An employee with the same emai already exists.");
+                return Conflict("An employee with the same email or mobile number already exists.");
             }
 
             var createdEmployee = await _employeeService.CreateEmployee(employee);

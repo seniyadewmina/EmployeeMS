@@ -14,10 +14,30 @@ namespace EmployeeManagement.Service
 
         public async Task<Employee> CreateEmployee(Employee employee)
         {
+            // Load the departments from the database and establish relationships
+            foreach (var employeeDepartment in employee.EmployeeDepartments)
+            {
+                // Fetch the department from the database
+                var department = await _context.Departments.FindAsync(employeeDepartment.DepartmentId);
+                if (department != null)
+                {
+                    // Set the Employee reference
+                    employeeDepartment.Employee = employee;
+                    // Set the Department reference
+                    employeeDepartment.Department = department;
+                }
+                else
+                {
+                    throw new Exception($"Department with ID {employeeDepartment.DepartmentId} not found.");
+                }
+            }
+
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
             return employee;
         }
+
+
 
         public async Task<Employee> GetEmployeeById(int id)
         {
