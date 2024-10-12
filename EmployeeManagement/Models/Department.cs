@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmployeeManagement.Models
 {
@@ -13,6 +14,6 @@ namespace EmployeeManagement.Models
         public string DepartmentName { get; set; }
 
         // Navigation Property
-        public List<Employee> Employees { get; set; }
+        public ICollection<EmployeeDepartment> EmployeeDepartments { get; set; } = new List<EmployeeDepartment>();
     }
 }

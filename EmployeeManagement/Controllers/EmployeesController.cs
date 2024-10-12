@@ -1,5 +1,6 @@
 ﻿using EmployeeManagement.Data;
 using EmployeeManagement.Models;
+using EmployeeManagement.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,90 +13,107 @@ namespace EmployeeManagement.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+     
+        private readonly EmployeeService _employeeService;
 
-        public EmployeesController(AppDbContext context)
+        public EmployeesController(EmployeeService employeeService)
         {
-            _context = context;
+            _employeeService = employeeService;
         }
 
         // GET: api/employees
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public async Task<IActionResult> GetAllEmployees()
         {
-            return await _context.Employees.ToListAsync();
+            var employees = await _employeeService.GetAllEmployees();
+            return Ok(employees);
         }
 
         // GET: api/employees/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        public async Task<IActionResult> GetEmployeeById(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            try
             {
-                return NotFound();
+                var employee = await _employeeService.GetEmployeeById(id);
+                return Ok(employee);
             }
-            return employee;
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Employee not found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         // POST: api/employees
         [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        public async Task<IActionResult> CreateEmployee([FromBody] Employee employee)
         {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetEmployee", new { id = employee.EmployeeId }, employee);
+            if (employee == null)
+            {
+                return BadRequest("Employee data is required.");
+            }
+
+            // Check for conflicts before creating the employee
+            var existingEmployee = await _employeeService.GetEmployeeByEmailOrMobile(employee.Email);
+            if (existingEmployee != null)
+            {
+                return Conflict("An employee with the same emai already exists.");
+            }
+
+            var createdEmployee = await _employeeService.CreateEmployee(employee);
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.EmployeeId }, createdEmployee);
         }
 
         // PUT: api/employees/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] Employee employee)
         {
-            if (id != employee.EmployeeId)
+            if (employee == null)
             {
-                return BadRequest();
+                return BadRequest("Employee data is required.");
             }
-
-            _context.Entry(employee).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                // Set the EmployeeId from the path variable
+                employee.EmployeeId = id;
 
-            return NoContent();
+                // Call the service to update the employee
+                var updatedEmployee = await _employeeService.UpdateEmployee(employee);
+                return Ok(updatedEmployee);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Employee not found.");
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions if necessary
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         // DELETE: api/employees/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            try
             {
-                return NotFound();
+                await _employeeService.DeleteEmployee(id);
+                return NoContent(); // 204 No Content
             }
-
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.EmployeeId == id);
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Employee not found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

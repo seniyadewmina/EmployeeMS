@@ -49,24 +49,24 @@ namespace EmployeeManagement.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "DepartmentEmployee",
+                name: "EmployeeDepartments",
                 columns: table => new
                 {
-                    DepartmentsDepartmentId = table.Column<int>(type: "int", nullable: false),
-                    EmployeesEmployeeId = table.Column<int>(type: "int", nullable: false)
+                    EmployeeId = table.Column<int>(type: "int", nullable: false),
+                    DepartmentId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DepartmentEmployee", x => new { x.DepartmentsDepartmentId, x.EmployeesEmployeeId });
+                    table.PrimaryKey("PK_EmployeeDepartments", x => new { x.EmployeeId, x.DepartmentId });
                     table.ForeignKey(
-                        name: "FK_DepartmentEmployee_Departments_DepartmentsDepartmentId",
-                        column: x => x.DepartmentsDepartmentId,
+                        name: "FK_EmployeeDepartments_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
                         principalTable: "Departments",
                         principalColumn: "DepartmentId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DepartmentEmployee_Employees_EmployeesEmployeeId",
-                        column: x => x.EmployeesEmployeeId,
+                        name: "FK_EmployeeDepartments_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
                         principalTable: "Employees",
                         principalColumn: "EmployeeId",
                         onDelete: ReferentialAction.Cascade);
@@ -74,16 +74,16 @@ namespace EmployeeManagement.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DepartmentEmployee_EmployeesEmployeeId",
-                table: "DepartmentEmployee",
-                column: "EmployeesEmployeeId");
+                name: "IX_EmployeeDepartments_DepartmentId",
+                table: "EmployeeDepartments",
+                column: "DepartmentId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DepartmentEmployee");
+                name: "EmployeeDepartments");
 
             migrationBuilder.DropTable(
                 name: "Departments");

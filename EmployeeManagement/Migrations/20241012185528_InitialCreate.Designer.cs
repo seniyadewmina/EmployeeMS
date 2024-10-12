@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmployeeManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241012123948_InitialCreate")]
+    [Migration("20241012185528_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -21,21 +21,6 @@ namespace EmployeeManagement.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("DepartmentEmployee", b =>
-                {
-                    b.Property<int>("DepartmentsDepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EmployeesEmployeeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DepartmentsDepartmentId", "EmployeesEmployeeId");
-
-                    b.HasIndex("EmployeesEmployeeId");
-
-                    b.ToTable("DepartmentEmployee");
-                });
 
             modelBuilder.Entity("EmployeeManagement.Models.Department", b =>
                 {
@@ -92,19 +77,48 @@ namespace EmployeeManagement.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("DepartmentEmployee", b =>
+            modelBuilder.Entity("EmployeeManagement.Models.EmployeeDepartment", b =>
                 {
-                    b.HasOne("EmployeeManagement.Models.Department", null)
-                        .WithMany()
-                        .HasForeignKey("DepartmentsDepartmentId")
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EmployeeId", "DepartmentId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("EmployeeDepartments");
+                });
+
+            modelBuilder.Entity("EmployeeManagement.Models.EmployeeDepartment", b =>
+                {
+                    b.HasOne("EmployeeManagement.Models.Department", "Department")
+                        .WithMany("EmployeeDepartments")
+                        .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EmployeeManagement.Models.Employee", null)
-                        .WithMany()
-                        .HasForeignKey("EmployeesEmployeeId")
+                    b.HasOne("EmployeeManagement.Models.Employee", "Employee")
+                        .WithMany("EmployeeDepartments")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("EmployeeManagement.Models.Department", b =>
+                {
+                    b.Navigation("EmployeeDepartments");
+                });
+
+            modelBuilder.Entity("EmployeeManagement.Models.Employee", b =>
+                {
+                    b.Navigation("EmployeeDepartments");
                 });
 #pragma warning restore 612, 618
         }

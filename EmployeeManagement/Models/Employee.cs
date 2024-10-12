@@ -32,6 +32,6 @@ namespace EmployeeManagement.Models
         public DateTime Birthday { get; set; }
 
         // Navigation Property for department
-        public List<Department> Departments { get; set; }
+        public ICollection<EmployeeDepartment> EmployeeDepartments { get; set; } = new List<EmployeeDepartment>();
     }
 }
