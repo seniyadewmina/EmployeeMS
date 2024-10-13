@@ -1,6 +1,5 @@
 ﻿using EmployeeManagement.Data;
 using EmployeeManagement.Models;
-using EmployeeManagement.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,107 +12,119 @@ namespace EmployeeManagement.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-     
-        private readonly EmployeeService _employeeService;
 
-        public EmployeesController(EmployeeService employeeService)
+        private readonly AppDbContext _context;
+
+        public EmployeesController(AppDbContext context)
         {
-            _employeeService = employeeService;
+            _context = context;
         }
 
         // GET: api/employees
         [HttpGet]
-        public async Task<IActionResult> GetAllEmployees()
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
         {
-            var employees = await _employeeService.GetAllEmployees();
+            var employees = await _context.Employees
+                .Include(e => e.Departments)
+                .ToListAsync();
+
             return Ok(employees);
         }
 
         // GET: api/employees/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetEmployeeById(int id)
+        public async Task<ActionResult<Employee>> GetEmployee(int id)
         {
-            try
+            var employee = await _context.Employees
+                .Include(e => e.Departments)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null)
             {
-                var employee = await _employeeService.GetEmployeeById(id);
-                return Ok(employee);
+                return NotFound();
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Employee not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+
+            return employee;
         }
+
 
         // POST: api/employees
         [HttpPost]
-        public async Task<IActionResult> CreateEmployee([FromBody] Employee employee)
+        public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
         {
-            if (employee == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Employee data is required.");
+                return BadRequest(ModelState);
             }
 
-            // Check for conflicts before creating the employee
-            var existingEmployee = await _employeeService.GetEmployeeByEmailOrMobile(employee.Email);
-            if (existingEmployee != null)
+            if (employee.Departments != null && employee.Departments.Count > 0)
             {
-                return Conflict("An employee with the same email or mobile number already exists.");
+                var departments = await _context.Departments
+                    .Where(d => employee.Departments.Select(dept => dept.Id).Contains(d.Id))
+                    .ToListAsync();
+
+                employee.Departments = departments;
             }
 
-            var createdEmployee = await _employeeService.CreateEmployee(employee);
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.EmployeeId }, createdEmployee);
+            employee.createdDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee);
         }
 
         // PUT: api/employees/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] Employee employee)
+        public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
         {
-            if (employee == null)
+            if (id != employee.Id)
             {
-                return BadRequest("Employee data is required.");
+                return BadRequest();
             }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Entry(employee).State = EntityState.Modified;
 
             try
             {
-                // Set the EmployeeId from the path variable
-                employee.EmployeeId = id;
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!EmployeeExists(id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
 
-                // Call the service to update the employee
-                var updatedEmployee = await _employeeService.UpdateEmployee(employee);
-                return Ok(updatedEmployee);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Employee not found.");
-            }
-            catch (Exception ex)
-            {
-                // Handle other exceptions if necessary
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            return NoContent();
         }
 
         // DELETE: api/employees/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            try
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null)
             {
-                await _employeeService.DeleteEmployee(id);
-                return NoContent(); // 204 No Content
+                return NotFound();
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Employee not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool EmployeeExists(int id)
+        {
+            return _context.Employees.Any(e => e.Id == id);
         }
     }
 }

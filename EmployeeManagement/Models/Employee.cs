@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace EmployeeManagement.Models
 {
     public class Employee
     {
         [Key]
-        public int EmployeeId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -29,9 +30,10 @@ namespace EmployeeManagement.Models
         public string Email { get; set; }
 
         [Required]
-        public DateTime Birthday { get; set; }
+        public string Birthday { get; set; }
 
-        // Navigation Property for department
-        public ICollection<EmployeeDepartment> EmployeeDepartments { get; set; } = new List<EmployeeDepartment>();
+        public string createdDate { get; set; }
+
+        public List<Department> Departments { get; set; } = new List<Department>();
     }
 }
