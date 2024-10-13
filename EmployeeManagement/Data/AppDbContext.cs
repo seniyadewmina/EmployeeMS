@@ -1,5 +1,6 @@
 ﻿using EmployeeManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -14,10 +15,14 @@ namespace EmployeeManagement.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Define many-to-many relationship between Employee and Department
-            modelBuilder.Entity<Employee>()
+        modelBuilder.Entity<Employee>()
                 .HasMany(e => e.Departments)
-                .WithMany(d => d.Employees);
+                .WithMany(e => e.Employees)
+                .UsingEntity(
+                    "EmployeeDepartment",
+                    l => l.HasOne(typeof(Department)).WithMany().HasForeignKey("DepartmentsId").HasPrincipalKey(nameof(Department.Id)),
+                    r => r.HasOne(typeof(Employee)).WithMany().HasForeignKey("EmployeeId").HasPrincipalKey(nameof(Employee.Id)),
+                    j => j.HasKey("EmployeeId", "DepartmentsId"));
         }
     }
 }

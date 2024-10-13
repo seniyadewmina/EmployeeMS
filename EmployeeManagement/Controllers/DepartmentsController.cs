@@ -1,10 +1,7 @@
 ﻿using EmployeeManagement.Data;
 using EmployeeManagement.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace EmployeeManagement.Controllers
 {
@@ -23,7 +20,7 @@ namespace EmployeeManagement.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            return await _context.Departments.ToListAsync();
+            return await _context.Departments.Include(d => d.Employees).ToListAsync();
         }
 
         // GET: api/departments/5
@@ -40,20 +37,31 @@ namespace EmployeeManagement.Controllers
 
         // POST: api/departments
         [HttpPost]
-        public async Task<ActionResult<Department>> PostDepartment(Department department)
+        public async Task<ActionResult<Department>> CreateDepartment(Department department)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _context.Departments.Add(department);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("GetDepartment", new { id = department.DepartmentId }, department);
+
+            return CreatedAtAction(nameof(GetDepartment), new { id = department.Id }, department);
         }
 
         // PUT: api/departments/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDepartment(int id, Department department)
+        public async Task<IActionResult> UpdateDepartment(int id, Department department)
         {
-            if (id != department.DepartmentId)
+            if (id != department.Id)
             {
                 return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             _context.Entry(department).State = EntityState.Modified;
@@ -68,10 +76,7 @@ namespace EmployeeManagement.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
@@ -95,7 +100,7 @@ namespace EmployeeManagement.Controllers
 
         private bool DepartmentExists(int id)
         {
-            return _context.Departments.Any(e => e.DepartmentId == id);
+            return _context.Departments.Any(d => d.Id == id);
         }
     }
 }
