@@ -85,7 +85,6 @@ namespace EmployeeManagement.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<string>("createdDate")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");

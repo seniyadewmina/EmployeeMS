@@ -76,19 +76,43 @@ namespace EmployeeManagement.Controllers
 
         // PUT: api/employees/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
+        public async Task<IActionResult> update_employee(int id, Employee employee)
         {
             if (id != employee.Id)
             {
                 return BadRequest();
             }
 
-            if (!ModelState.IsValid)
+            var existing_employee = await _context.Employees
+                .Include(e => e.Departments)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (existing_employee == null)
             {
-                return BadRequest(ModelState);
+                return NotFound();
             }
 
-            _context.Entry(employee).State = EntityState.Modified;
+            // Update employee fields
+            existing_employee.FirstName = employee.FirstName;
+            existing_employee.LastName = employee.LastName;
+            existing_employee.Address = employee.Address;
+            existing_employee.Mobile = employee.Mobile;
+            existing_employee.Email = employee.Email;
+            existing_employee.Birthday = employee.Birthday;
+
+            // Update the departments if provided
+            if (employee.Departments != null && employee.Departments.Count > 0)
+            {
+                var departments = await _context.Departments
+                    .Where(d => employee.Departments.Select(dept => dept.Id).Contains(d.Id))
+                    .ToListAsync();
+
+                existing_employee.Departments = departments;
+            }
+
+            // Update the updated_date to the current date and time
+
+            _context.Entry(existing_employee).State = EntityState.Modified;
 
             try
             {
@@ -96,15 +120,24 @@ namespace EmployeeManagement.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EmployeeExists(id))
+                if (!employee_exists(id))
                 {
                     return NotFound();
                 }
-                throw;
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
         }
+
+        private bool employee_exists(int id)
+        {
+            return _context.Employees.Any(e => e.Id == id);
+        }
+
 
         // DELETE: api/employees/5
         [HttpDelete("{id}")]

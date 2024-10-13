@@ -32,7 +32,7 @@ namespace EmployeeManagement.Models
         [Required]
         public string Birthday { get; set; }
 
-        public string createdDate { get; set; }
+        public string? createdDate { get; set; }
 
         public List<Department> Departments { get; set; } = new List<Department>();
     }

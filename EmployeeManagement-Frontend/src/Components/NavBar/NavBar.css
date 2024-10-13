@@ -1,0 +1,90 @@
+.header{
+    width: 100%;
+    background-color: #393E46;
+    height: 80px;
+    align-content: center;
+}
+
+.nav-bar{
+ display: flex;
+ align-items: center;
+ margin-left: 20px;
+ justify-content: space-between;
+ height: 80px;
+}
+
+.nav-item{
+    display: flex;
+    align-items: center;
+    margin-right: 100px;
+}
+
+.register,.employeelist{
+    text-decoration: none;
+    color: #EEEEEE;   
+    font: 1em sans-serif; 
+    margin-right: 40px;
+    position: relative;
+    font-weight: bold;
+}
+
+.register:hover {
+    color: #ffffff; 
+    font-weight: bold; 
+    font-size: 1.1em; 
+    letter-spacing: 0.05em; 
+}
+
+.register::before, 
+.register::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background-color: #ffffff;
+    transition: width 0.3s ease-in-out;
+}
+
+.register::after {
+    top: 150%;
+    left: 0;
+}
+
+.register:hover::after {
+    width: 100%;
+}
+
+.employeelist:hover {
+    color: #ffffff; 
+    font-weight: bold; 
+    font-size: 1.1em; 
+    letter-spacing: 0.05em; 
+}
+
+.employeelist::before, 
+.employeelist::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background-color: #ffffff;
+    transition: width 0.3s ease-in-out;
+}
+
+.employeelist::after {
+    top: 150%;
+    left: 0;
+}
+
+.employeelist:hover::after {
+    width: 100%;
+}
+
+.logo{
+    text-decoration: none;
+    color: #EEEEEE;   
+    font: 1em sans-serif; 
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-left: 20px;
+}

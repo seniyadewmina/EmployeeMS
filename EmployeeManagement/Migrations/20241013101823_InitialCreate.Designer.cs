@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmployeeManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241013071109_InitialCreate")]
+    [Migration("20241013101823_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -88,7 +88,6 @@ namespace EmployeeManagement.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<string>("createdDate")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");

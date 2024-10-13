@@ -40,7 +40,7 @@ namespace EmployeeManagement.Migrations
                     Mobile = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
                     Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
                     Birthday = table.Column<string>(type: "longtext", nullable: false),
-                    createdDate = table.Column<string>(type: "longtext", nullable: false)
+                    createdDate = table.Column<string>(type: "longtext", nullable: true)
                 },
                 constraints: table =>
                 {
